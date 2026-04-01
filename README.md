@@ -1,77 +1,88 @@
 # TinyTrack – Plateforme de Digitalisation d'un Jardin d'Enfants
 
-> *"Parce que chaque enfant mérite transparence, sécurité et suivi."*
+> *"Chaque petit pas compte."*
 
 ![Esprit School of Engineering](https://img.shields.io/badge/Esprit%20School%20of%20Engineering-Tunisia-green)
-![Academic Year](https://img.shields.io/badge/Academic%20Year-2025--2026-blue)
+![Academic Year](https://img.shields.io/badge/Annee%20Universitaire-2025--2026-blue)
 ![PHP](https://img.shields.io/badge/Backend-PHP-777BB4)
 ![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1)
 ![JavaScript](https://img.shields.io/badge/Frontend-JavaScript-F7DF1E)
 
 ---
 
-## Table des Matières
+## Table des Matieres
 
-- [Overview](#overview)
-- [Problématique](#problématique)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
+- [Apercu](#apercu)
+- [Problematique](#problematique)
+- [Fonctionnalites](#fonctionnalites)
+- [Stack Technique](#stack-technique)
 - [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [Contributors](#contributors)
-- [Academic Context](#academic-context)
-- [Acknowledgments](#acknowledgments)
+- [Installation](#installation)
+- [Equipe](#equipe)
+- [Contexte Academique](#contexte-academique)
+- [Remerciements](#remerciements)
 
 ---
 
-## Overview
+## Apercu
 
-**TinyTrack** est une application web full-stack dédiée à la digitalisation complète d'un jardin d'enfants / crèche en Tunisie.
+**TinyTrack** est une application web full-stack dediee a la digitalisation complete d'un jardin d'enfants / creche en Tunisie.
 
-Elle centralise la gestion des enfants, des présences, des activités quotidiennes et de la communication entre l'établissement et les parents — offrant transparence, traçabilité et sécurité à toutes les parties prenantes.
+Elle centralise la gestion des enfants, des presences, des activites quotidiennes et de la communication entre l'etablissement et les parents — offrant transparence, tracabilite et securite a toutes les parties prenantes.
 
-Developed at **Esprit School of Engineering** – Tunisia, as part of the **Projet Technologies Web (PW)** module, Academic Year 2025–2026.
-
----
-
-## Problématique
-
-En Tunisie, la majorité des jardins d'enfants fonctionnent encore de manière entièrement manuelle :
-
-- Les parents **ne savent pas** ce que fait leur enfant pendant la journée
-- Les **présences** sont gérées sur des cahiers papier
-- La **communication** crèche ↔ parents est archaïque (appels, cahiers de liaison)
-- Aucun **suivi du développement** de l'enfant n'est disponible
-- Les **incidents** ne sont pas tracés ni signalés efficacement
-
-Suite aux scandales récents dans des établissements tunisiens, la question de la **sécurité et de la transparence** est devenue une priorité absolue pour les familles.
-
-**TinyTrack** répond à cette problématique en digitalisant entièrement la gestion de la crèche et en offrant aux parents une **visibilité en temps réel** sur la vie de leur enfant.
+Projet developpe a **Esprit School of Engineering** – Tunisie, dans le cadre du module **Projet Technologies Web (PW)**, Classe 2A19, Annee Universitaire 2025–2026.
 
 ---
 
-## Features
+## Problematique
 
-- **Gestion des enfants & dossiers** — Inscription, suivi médical, archivage des dossiers
-- **Gestion des présences** — Pointage quotidien, historique, alertes d'absence
-- **Journal de bord quotidien** — Activités, repas, sieste, humeur de l'enfant
-- **Communication parents** — Messagerie interne, notifications, annonces
-- **Gestion du personnel** — Fiches employés, planning, affectations
-- **Dashboard administratif** — Statistiques globales, rapports, gestion de l'établissement
+En Tunisie, la majorite des jardins d'enfants fonctionnent encore de maniere entierement manuelle :
+
+- **2 800+** jardins d'enfants en Tunisie
+- **73%** gerent encore avec du papier
+- **82%** des parents veulent un suivi digital
+
+Les defis concrets :
+
+- Les parents **ne savent pas** ce que fait leur enfant pendant la journee
+- Les **presences** sont gerees sur des cahiers papier
+- La **communication** creche ↔ parents est archaique (appels, cahiers de liaison)
+- Les **dossiers medicaux** sont sur papier : risque d'erreur en cas d'urgence
+- Les **incidents** ne sont pas traces ni signales efficacement
+- La **facturation** est manuelle et sujette aux erreurs
+
+Suite aux scandales recents dans des etablissements tunisiens, la question de la **securite et de la transparence** est devenue une priorite absolue pour les familles.
+
+**TinyTrack** repond a cette problematique en digitalisant entierement la gestion de la creche et en offrant aux parents une **visibilite en temps reel** sur la vie de leur enfant.
 
 ---
 
-## Tech Stack
+## Fonctionnalites
+
+| Module | Description |
+|--------|-------------|
+| Gestion des enfants & inscriptions | Inscription, fiche enfant, dossier medical, archivage |
+| Gestion des presences & justificatifs | Pointage quotidien, historique, alertes d'absence, justificatifs |
+| Journal de bord quotidien | Activites, repas, sieste, humeur de l'enfant |
+| Communication parents | Messagerie interne, notifications, annonces, alertes urgence |
+| Gestion du personnel | Fiches employes, planning, affectations aux groupes |
+| Facturation & Dashboard | Factures mensuelles, paiements, statistiques globales, rapports |
+
+---
+
+## Stack Technique
 
 ### Frontend
 - HTML5 / CSS3
 - JavaScript (Vanilla JS)
+- Template Front Office : **Kider** (Bootstrap 5)
+- Template Back Office : **AdminLTE**
 
 ### Backend
-- PHP (développement côté serveur)
+- PHP (developpement cote serveur)
 
-### Base de Données
-- MySQL
+### Base de Donnees
+- MySQL (14 tables, 12 relations FK)
 
 ### Outils
 - XAMPP / WAMP
@@ -84,38 +95,38 @@ Suite aux scandales récents dans des établissements tunisiens, la question de 
 
 ```
 TinyTrack/
-├── index.php                        # Point d'entrée principal
+├── index.php                        # Point d'entree principal
 ├── assets/
 │   ├── css/                         # Feuilles de style
 │   ├── js/                          # Scripts JavaScript
 │   └── images/                      # Ressources visuelles
 ├── pages/
 │   ├── enfants.php                  # Gestion des enfants & dossiers
-│   ├── presences.php                # Gestion des présences
+│   ├── presences.php                # Gestion des presences & justificatifs
 │   ├── journal.php                  # Journal de bord quotidien
 │   ├── communication.php            # Messagerie & notifications
-│   ├── personnel.php                # Gestion du personnel
-│   └── dashboard.php                # Dashboard admin & statistiques
-├── includes/                        # Composants réutilisables (header, footer, navbar)
+│   ├── personnel.php                # Gestion du personnel & planning
+│   └── dashboard.php                # Facturation & dashboard admin
+├── includes/                        # Composants reutilisables (header, footer, navbar)
 ├── config/
-│   └── db.php                       # Configuration base de données
-├── controllers/                     # Logique métier
-├── models/                          # Interaction avec la base de données
+│   └── db.php                       # Configuration base de donnees
+├── controllers/                     # Logique metier
+├── models/                          # Interaction avec la base de donnees
 └── README.md
 ```
 
 ---
 
-## Getting Started
+## Installation
 
-### Prérequis
+### Prerequis
 
 - XAMPP ou WAMP
 - PHP 7.4+
 - MySQL 5.7+
 - Navigateur web moderne
 
-### Installation
+### Etapes
 
 1. **Clonez le repository :**
 
@@ -127,12 +138,12 @@ cd TinyTrack
 2. **Configurez l'environnement local :**
 
    - Placez le projet dans le dossier `www` (WAMP) ou `htdocs` (XAMPP)
-   - Démarrez Apache et MySQL depuis l'interface WAMP/XAMPP
+   - Demarrez Apache et MySQL depuis l'interface WAMP/XAMPP
 
-3. **Créez la base de données :**
+3. **Creez la base de donnees :**
 
    - Ouvrez phpMyAdmin via `http://localhost/phpmyadmin`
-   - Créez une base de données nommée `tinytrack`
+   - Creez une base de donnees nommee `tinytrack`
    - Importez le fichier `database/tinytrack.sql`
 
 4. **Configurez la connexion :**
@@ -146,7 +157,7 @@ $user = "root";
 $pass = "";
 ```
 
-5. **Accédez à l'application :**
+5. **Accedez a l'application :**
 
 ```
 http://localhost/TinyTrack
@@ -154,36 +165,30 @@ http://localhost/TinyTrack
 
 ---
 
-## Contributors
+## Equipe
 
-Ce projet a été réalisé par :
-
-| Nom | Module | Entités |
-|---|---|---|
-| Belhaj Mabrouk Eya | Gestion des enfants & inscriptions | Enfant ↔ Dossier |
-| Ajili Rayen | Gestion des présences | Présence ↔ Enfant |
-| Fadhlaoui Mohamed | Journal de bord quotidien | Activité ↔ Rapport |
+| Membre | Module | Entites (avec jointure) |
+|--------|--------|-------------------------|
+| Belhaj Mabrouk Eya | Gestion des enfants & inscriptions | Enfant ↔ DossierMedical |
+| Ajili Rayen | Gestion des presences & justificatifs | Presence ↔ Justificatif |
+| Fadhlaoui Mohamed | Journal de bord quotidien | RapportJournalier ↔ Activite |
 | Rajhi Amen Allah | Communication parents | Message ↔ Notification |
-| Ben Khalifa Youssef | Gestion du personnel | Employé ↔ Planning |
-| Ben Slimen Mahdi | Dashboard admin & statistiques | Statistique ↔ Établissement |
+| Ben Khalifa Youssef | Gestion du personnel | Employe ↔ Planning |
+| Ben Slimene Mahdi | Facturation & Dashboard | Facture ↔ Paiement |
 
 ---
 
-## Academic Context
+## Contexte Academique
 
-Developed at **Esprit School of Engineering** – Tunisia
+Projet developpe a **Esprit School of Engineering** – Tunisie
 
-- **Module :** Projet Technologies Web (PW) – 2A19
-- **Année Universitaire :** 2025–2026
-- **Encadrante :** Oumeima IBN ELFEKIH
+- **Module :** Projet Technologies Web (PW)
+- **Classe :** 2A19
+- **Annee Universitaire :** 2025–2026
 
----
-
-## Acknowledgments
-
-Nous remercions notre encadrante **Mme Oumeima IBN ELFEKIH** pour son accompagnement tout au long de ce projet, ainsi qu'**Esprit School of Engineering** pour les ressources pédagogiques mises à notre disposition.
 
 ---
 
-© 2026 TinyTrack – Esprit School of Engineering
 
+
+&copy; 2026 TinyTrack – Esprit School of Engineering
