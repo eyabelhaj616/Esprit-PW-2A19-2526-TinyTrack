@@ -14,12 +14,44 @@ class ConversationController {
         return $this->model->readAll();
     }
 
+    public function forUser($userId, $role) {
+        return $this->model->readForUser($userId, $role);
+    }
+
+    public function contactsForUser($userId, $role) {
+        return $this->model->contactsForUser($userId, $role);
+    }
+
+    public function openConversationForUser($userId, $role, $contactId) {
+        if ($role === 'parent') {
+            $parentId = (int) $userId;
+            $staffId = (int) $contactId;
+        } elseif ($role === 'educateur') {
+            $parentId = (int) $contactId;
+            $staffId = (int) $userId;
+        } else {
+            return null;
+        }
+
+        $conversation = $this->model->getOrCreate($parentId, $staffId);
+
+        return $conversation->id ?? null;
+    }
+
     public function show($id) {
         return $this->model->find($id);
     }
 
     public function stats() {
         return $this->model->stats();
+    }
+
+    public function archive($id) {
+        return $this->model->archive($id);
+    }
+
+    public function restore($id) {
+        return $this->model->restore($id);
     }
 
     public function adminSender() {
@@ -41,13 +73,20 @@ class ConversationController {
 
     public function changeStatus() {
         $id = isset($_GET['id']) ? $_GET['id'] : null;
+        $action = isset($_GET['action']) ? trim($_GET['action']) : '';
         $status = isset($_GET['status']) ? trim($_GET['status']) : '';
 
-        if (!$id || $status === '') {
+        if (!$id) {
             die("Invalid input");
         }
 
-        $this->model->updateStatus($id, $status);
+        if ($action === 'archive' || $status === 'archived') {
+            $this->model->archive($id);
+        } elseif ($action === 'restore' || $status === 'active') {
+            $this->model->restore($id);
+        } else {
+            die("Invalid input");
+        }
 
         $redirect = isset($_GET['redirect']) ? $_GET['redirect'] : "../view/back/communication_Backend.php";
         header("Location: " . $redirect);

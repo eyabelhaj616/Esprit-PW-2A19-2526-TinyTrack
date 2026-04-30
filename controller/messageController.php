@@ -1,13 +1,16 @@
 <?php
 
+require_once __DIR__ . "/../model/conversation.php";
 require_once __DIR__ . "/../model/message.php";
 
 class MessageController {
 
     private $model;
+    private $conversationModel;
 
     public function __construct() {
         $this->model = new Message();
+        $this->conversationModel = new Conversation();
     }
 
     public function store() {
@@ -23,6 +26,15 @@ class MessageController {
             die("Invalid input");
         }
 
+        $conversation = $this->conversationModel->find($conversation_id);
+        if (!$conversation) {
+            die("Conversation not found");
+        }
+
+        if (($conversation->status ?? '') === 'archived' && $sender_role !== 'admin') {
+            die("This conversation is archived");
+        }
+
         $this->model->create($conversation_id, $sender_id, $sender_role, $body);
 
         header("Location: " . $redirect);
@@ -33,20 +45,23 @@ class MessageController {
         return $this->model->read($conversation_id);
     }
 
-    public function all() {
-        return $this->model->readAll();
+    public function unreadCount($conversation_id, $reader_role) {
+        return $this->model->unreadCount($conversation_id, $reader_role);
     }
 
-    public function destroy() {
-        $id = isset($_GET['id']) ? $_GET['id'] : null;
+    public function markAsRead($conversation_id, $reader_role) {
+        return $this->model->markAsRead($conversation_id, $reader_role);
+    }
 
-        if (!$id) {
-            die("Invalid ID");
-        }
+    public function adminAlertCount() {
+        return $this->model->adminAlertCount();
+    }
 
-        $this->model->delete($id);
+    public function claimForAdmin($id, $byRole) {
+        return $this->model->setAdminAlert($id, $byRole);
+    }
 
-        header("Location: ../view/back/communication_Backend.php");
-        exit;
+    public function clearAdminAlert($id) {
+        return $this->model->clearAdminAlert($id);
     }
 }

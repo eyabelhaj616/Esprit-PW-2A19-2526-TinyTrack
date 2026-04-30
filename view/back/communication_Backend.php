@@ -2,11 +2,19 @@
 require_once __DIR__ . "/../../controller/ConversationController.php";
 require_once __DIR__ . "/../../controller/MessageController.php";
 
+$devUser = require __DIR__ . "/../../config/dev_user.php";
+
+if (($devUser['page'] ?? 'front') !== 'back') {
+    header('Location: /ProjetCommunication/view/front/communication.php');
+    exit;
+}
+
 $conversationController = new ConversationController();
 $messageController = new MessageController();
 
 $conversations = $conversationController->all();
 $stats = $conversationController->stats();
+$alertCount = $messageController->adminAlertCount();
 $adminSender = $conversationController->adminSender();
 $adminSenderId = $adminSender->id ?? 1;
 
@@ -17,7 +25,7 @@ $messages = $selectedConversation ? $messageController->index($selectedConversat
 $totalMessages = count($messages);
 $parentName = $selectedConversation ? trim(($selectedConversation->parent_prenom ?? '') . ' ' . ($selectedConversation->parent_nom ?? '')) : '';
 $staffName = $selectedConversation ? trim(($selectedConversation->staff_prenom ?? '') . ' ' . ($selectedConversation->staff_nom ?? '')) : '';
-$isOpen = $selectedConversation && (($selectedConversation->status ?? '') === 'open');
+$isArchived = $selectedConversation && (($selectedConversation->status ?? '') === 'archived');
 
 include 'template/header.php';
 include 'template/sidebar.php';
@@ -58,7 +66,7 @@ include 'template/sidebar.php';
 
   .comm-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
     margin-bottom: 18px;
   }
@@ -147,13 +155,18 @@ include 'template/sidebar.php';
     font-weight: 800;
   }
 
-  .conversation-status.open {
+  .conversation-status.active {
     background: #E8F5E9;
     color: #2E7D32;
   }
 
-  .conversation-status.closed {
+  .conversation-status.archived {
     background: #FFF3E0;
+    color: #E65100;
+  }
+
+  .conversation-status.alert {
+    background: #FFF8E1;
     color: #E65100;
   }
 
@@ -190,6 +203,63 @@ include 'template/sidebar.php';
     border-radius: 12px !important;
     font-weight: 800 !important;
     padding: 0.6rem 0.9rem !important;
+  }
+
+  .message-menu-wrap {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+  }
+
+  .message-menu-trigger {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    color: #6b7280;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    cursor: pointer;
+  }
+
+  .message-menu {
+    position: absolute;
+    top: 36px;
+    right: 0;
+    min-width: 180px;
+    background: #fff;
+    border: 1px solid #e5ebf0;
+    border-radius: 14px;
+    box-shadow: 0 16px 30px rgba(31,41,55,0.14);
+    padding: 6px;
+    display: none;
+  }
+
+  .message-menu.is-open {
+    display: block;
+  }
+
+  .message-menu a,
+  .message-menu span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .message-menu a:hover {
+    background: #f3f4f6;
   }
 
   .chat-info {
@@ -255,12 +325,18 @@ include 'template/sidebar.php';
     border: 1px solid #e5ebf0;
     border-radius: 18px 18px 18px 6px;
     padding: 12px 14px;
+    position: relative;
   }
 
   .chat-message.mine .chat-bubble {
     background: #E8F5E9;
     border-color: #C8E6C9;
     border-radius: 18px 18px 6px 18px;
+  }
+
+  .chat-message.flagged .chat-bubble {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.08);
   }
 
   .chat-meta {
@@ -276,6 +352,19 @@ include 'template/sidebar.php';
     font-size: 0.72rem;
     text-align: right;
     margin-top: 6px;
+  }
+
+  .chat-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #fff4e5;
+    color: #c2410c;
+    font-size: 0.68rem;
+    font-weight: 800;
   }
 
   .composer {
@@ -366,12 +455,16 @@ include 'template/sidebar.php';
           <div class="stat-value"><?= (int) $stats->total ?></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Conversations ouvertes</div>
-          <div class="stat-value"><?= (int) $stats->open_count ?></div>
-        </div>
-        <div class="stat-card">
           <div class="stat-label">Messages de la conversation active</div>
           <div class="stat-value"><?= $selectedConversation ? $totalMessages : 0 ?></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Messages signales</div>
+          <div class="stat-value"><?= (int) $alertCount ?></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Conversations archivees</div>
+          <div class="stat-value"><?= (int) $stats->archived_count ?></div>
         </div>
       </div>
 
@@ -397,8 +490,9 @@ include 'template/sidebar.php';
                 <?php
                   $rowParentName = trim(($conversation->parent_prenom ?? '') . ' ' . ($conversation->parent_nom ?? ''));
                   $rowStaffName = trim(($conversation->staff_prenom ?? '') . ' ' . ($conversation->staff_nom ?? ''));
-                  $rowIsOpen = ($conversation->status ?? '') === 'open';
+                  $rowIsArchived = ($conversation->status ?? '') === 'archived';
                   $rowActive = $selectedConversation && (int) $selectedConversation->id === (int) $conversation->id;
+                  $rowAlertMessages = (int) ($conversation->alert_messages_count ?? 0);
                 ?>
                 <a
                   href="/ProjetCommunication/view/back/communication_Backend.php?id=<?= $conversation->id ?>"
@@ -407,10 +501,18 @@ include 'template/sidebar.php';
                 >
                   <div class="conversation-item-top">
                     <div class="conversation-name"><?= htmlspecialchars($rowParentName) ?></div>
-                    <span class="conversation-status <?= $rowIsOpen ? 'open' : 'closed' ?>">
-                      <i class="fas <?= $rowIsOpen ? 'fa-folder-open' : 'fa-lock' ?>"></i>
-                      <?= $rowIsOpen ? 'Ouverte' : 'Fermee' ?>
-                    </span>
+                    <div class="d-flex flex-column align-items-end gap-1">
+                      <span class="conversation-status <?= $rowIsArchived ? 'archived' : 'active' ?>">
+                        <i class="fas <?= $rowIsArchived ? 'fa-box-archive' : 'fa-comments' ?>"></i>
+                        <?= $rowIsArchived ? 'Archivee' : 'Active' ?>
+                      </span>
+                      <?php if ($rowAlertMessages > 0): ?>
+                        <span class="conversation-status alert">
+                          <i class="fas fa-bell"></i>
+                          <?= $rowAlertMessages > 1 ? $rowAlertMessages . ' messages' : 'Message signale' ?>
+                        </span>
+                      <?php endif; ?>
+                    </div>
                   </div>
                   <div class="conversation-meta">Staff: <?= htmlspecialchars($rowStaffName) ?></div>
                   <div class="conversation-preview">
@@ -435,9 +537,9 @@ include 'template/sidebar.php';
                 <div class="chat-subtext">Parent: <?= htmlspecialchars($parentName) ?> | Staff: <?= htmlspecialchars($staffName) ?></div>
               </div>
               <div class="chat-actions">
-                <a href="/ProjetCommunication/controller/updateConversationStatus.php?id=<?= $selectedConversation->id ?>&status=<?= $isOpen ? 'closed' : 'open' ?>&redirect=../view/back/communication_Backend.php?id=<?= $selectedConversation->id ?>" class="btn <?= $isOpen ? 'btn-warning' : 'btn-success' ?>">
-                  <i class="fas <?= $isOpen ? 'fa-lock' : 'fa-folder-open' ?>"></i>
-                  <?= $isOpen ? 'Fermer la conversation' : 'Ouvrir la conversation' ?>
+                <a href="/ProjetCommunication/controller/updateConversationStatus.php?id=<?= $selectedConversation->id ?>&action=<?= $isArchived ? 'restore' : 'archive' ?>&redirect=../view/back/communication_Backend.php?id=<?= $selectedConversation->id ?>" class="btn <?= $isArchived ? 'btn-success' : 'btn-warning' ?>">
+                  <i class="fas <?= $isArchived ? 'fa-box-open' : 'fa-box-archive' ?>"></i>
+                  <?= $isArchived ? 'Desarchiver' : 'Archiver' ?>
                 </a>
                 <a href="/ProjetCommunication/controller/deleteConversation.php?id=<?= $selectedConversation->id ?>" class="btn btn-danger" onclick="return confirm('Supprimer cette conversation ?')">
                   <i class="fas fa-trash"></i>
@@ -449,7 +551,7 @@ include 'template/sidebar.php';
             <div class="chat-info">
               <div class="chat-info-box">
                 <div class="chat-info-label">Statut</div>
-                <div class="chat-info-value"><?= $isOpen ? 'Ouverte' : 'Fermee' ?></div>
+                <div class="chat-info-value"><?= $isArchived ? 'Archivee' : 'Active' ?></div>
               </div>
               <div class="chat-info-box">
                 <div class="chat-info-label">Date de creation</div>
@@ -473,14 +575,31 @@ include 'template/sidebar.php';
                     $isMine = $message->sender_role === 'admin';
                     $avatarColor = $isMine ? '#4CAF50' : ($message->sender_role === 'educateur' ? '#5B9BD5' : '#FFA726');
                     $avatarIcon = $isMine ? 'shield-alt' : ($message->sender_role === 'educateur' ? 'user-tie' : 'user');
+                    $isFlagged = !empty($message->needs_admin_attention);
                   ?>
-                  <div class="chat-message<?= $isMine ? ' mine' : '' ?>">
+                  <div class="chat-message<?= $isMine ? ' mine' : '' ?><?= $isFlagged ? ' flagged' : '' ?>">
                     <div class="chat-avatar" style="background:<?= $avatarColor ?>;">
                       <i class="fas fa-<?= $avatarIcon ?>"></i>
                     </div>
                     <div class="chat-bubble">
+                      <?php if ($isFlagged): ?>
+                        <div class="message-menu-wrap">
+                          <button type="button" class="message-menu-trigger" data-message-menu="back-message-menu-<?= (int) $message->id ?>" aria-label="Options">
+                            <i class="fas fa-ellipsis-v"></i>
+                          </button>
+                          <div class="message-menu" id="back-message-menu-<?= (int) $message->id ?>">
+                            <a href="/ProjetCommunication/controller/updateMessageAlert.php?id=<?= (int) $message->id ?>&action=clear&redirect=../view/back/communication_Backend.php?id=<?= (int) $selectedConversation->id ?>">
+                              <i class="fas fa-check"></i>
+                              Marquer traitee
+                            </a>
+                          </div>
+                        </div>
+                      <?php endif; ?>
                       <div class="chat-meta"><?= $isMine ? 'Admin' : htmlspecialchars($message->sender_role) ?></div>
                       <div><?= nl2br(htmlspecialchars($message->body)) ?></div>
+                      <?php if ($isFlagged): ?>
+                        <div class="chat-flag"><i class="fas fa-bell"></i> Message signale</div>
+                      <?php endif; ?>
                       <div class="chat-time"><?= $message->created_at ?? '-' ?></div>
                     </div>
                   </div>
@@ -520,12 +639,36 @@ if (chatThread) {
 var conversationSearch = document.getElementById('conversationSearch');
 var conversationItems = document.querySelectorAll('.conversation-item');
 
-if (conversationSearch) {
-  conversationSearch.addEventListener('input', function() {
-    var value = this.value.toLowerCase().trim();
-    conversationItems.forEach(function(item) {
-      item.style.display = item.dataset.search.indexOf(value) !== -1 ? 'block' : 'none';
+  if (conversationSearch) {
+    conversationSearch.addEventListener('input', function() {
+      var value = this.value.toLowerCase().trim();
+      conversationItems.forEach(function(item) {
+        item.style.display = item.dataset.search.indexOf(value) !== -1 ? 'block' : 'none';
+      });
+    });
+  }
+
+  document.querySelectorAll('.message-menu-trigger').forEach(function(button) {
+    button.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var targetId = this.getAttribute('data-message-menu');
+      var menu = document.getElementById(targetId);
+
+      document.querySelectorAll('.message-menu.is-open').forEach(function(openMenu) {
+        if (openMenu !== menu) {
+          openMenu.classList.remove('is-open');
+        }
+      });
+
+      if (menu) {
+        menu.classList.toggle('is-open');
+      }
     });
   });
-}
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.message-menu.is-open').forEach(function(menu) {
+      menu.classList.remove('is-open');
+    });
+  });
 </script>
