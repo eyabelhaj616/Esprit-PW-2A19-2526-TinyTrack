@@ -4,7 +4,7 @@ require_once __DIR__ . "/database.php";
 
 // Temporary manual user switch for communication testing.
 // Change only this id now; remove this file later when real auth is ready.
-$selectedUserId = 5 ;
+$selectedUserId = 1;
 
 $db = new Database();
 $conn = $db->connect();

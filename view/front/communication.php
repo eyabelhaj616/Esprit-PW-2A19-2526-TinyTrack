@@ -12,7 +12,6 @@ if (($devUser['page'] ?? 'front') !== 'front') {
 
 $currentUserId = (int) ($devUser['id'] ?? 0);
 $currentUserRole = $devUser['role'] ?? 'parent';
-$currentUserName = $devUser['name'] ?? 'User test';
 
 $conversationController = new ConversationController();
 $messageController = new MessageController();
@@ -100,13 +99,6 @@ include 'template/header.php';
     font-family: 'Fredoka One', cursive;
     color: #4CAF50;
     font-size: 1.12rem;
-  }
-
-  .front-help {
-    margin: 0;
-    color: #7b8794;
-    font-size: 0.88rem;
-    font-weight: 700;
   }
 
   .front-conversation-list {
@@ -311,18 +303,31 @@ include 'template/header.php';
   }
 
   .front-composer {
-    padding: 18px 20px 20px;
-    border-top: 1px solid #eef2f5;
+    padding: 16px 20px;
+    border-top: 1px solid #f1f3f5;
     background: #fff;
   }
 
   .front-compose-wrap {
     position: relative;
-    border: 1px solid #e5ebf0;
-    border-radius: 22px;
-    background: #fcfcfd;
-    box-shadow: 0 8px 22px rgba(31,41,55,0.05);
-    padding: 12px 14px 76px;
+    max-width: 100%;
+  }
+
+  .front-compose-shell {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 24px;
+    padding: 6px 16px;
+    transition: all 0.2s ease;
+  }
+
+  .front-compose-shell:focus-within {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+    background: #fff;
   }
 
   .front-compose-wrap textarea {
@@ -330,22 +335,42 @@ include 'template/header.php';
     background: transparent !important;
     box-shadow: none !important;
     resize: none;
-    min-height: 110px;
-    padding: 8px 4px;
-    font-size: 1rem;
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 0;
+    margin-right: 48px;
+    font-size: 0.95rem;
+    color: #343a40;
+    line-height: 1.5;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .front-compose-wrap textarea::placeholder {
+    color: #adb5bd;
   }
 
   .front-send-btn {
     position: absolute;
-    right: 14px;
-    bottom: 14px;
-    width: 54px;
-    height: 54px;
+    right: 8px;
+    bottom: 8px;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     border-radius: 50%;
-    box-shadow: 0 12px 24px rgba(76,175,80,0.24);
+    background: #4CAF50;
+    color: white;
+    border: none;
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  
+  .front-send-btn:hover {
+    background: #43a047;
+    transform: scale(1.05);
   }
 
   .front-send-btn i {
@@ -366,28 +391,57 @@ include 'template/header.php';
       max-width: 86%;
     }
   }
+  .front-compose-shell.bot-active {
+    border-color: #9C27B0;
+    box-shadow: 0 0 15px rgba(156, 39, 176, 0.2);
+  }
+  .front-compose-shell.bot-active .front-send-btn {
+    background: linear-gradient(135deg, #9C27B0, #6A1B9A);
+    box-shadow: 0 12px 24px rgba(156, 39, 176, 0.3);
+  }
+
+  .ai-suggestion {
+    position: absolute;
+    top: -24px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #4CAF50;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: none;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .ai-suggestion.visible { display: block; animation: fadeIn 0.2s ease-out; }
+  .ai-suggestion span.tab-key {
+    background: #edf1f5; color: #2D3436; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 6px;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 
 <div class="container py-4">
   <div class="front-comm">
     <div class="text-center mb-4">
       <h2 class="section-title"><i class="fas fa-comments"></i> Communication</h2>
-      <p class="text-muted mt-3">Votre conversation avec l'equipe TinyTrack.</p>
-      <p class="text-muted small mb-0">Mode test: <?= htmlspecialchars($currentUserName) ?>, id <?= (int) $currentUserId ?>, role <?= htmlspecialchars($currentUserRole) ?></p>
     </div>
 
     <div class="front-comm-shell">
       <div class="front-panel">
         <div class="front-panel-header">
-          <h3 class="front-title">Personnes a contacter</h3>
-          <p class="front-help">Parents voient les educateurs de leurs enfants. Educateurs voient les parents des enfants de leurs groupes.</p>
+          <h3 class="front-title">Contacts</h3>
         </div>
 
         <div class="front-conversation-list">
           <?php if (empty($contacts)): ?>
             <div class="text-center text-muted py-5">
               <i class="fas fa-inbox fa-2x mb-3"></i>
-              <p class="mb-0">Aucun contact disponible pour cet utilisateur.</p>
+              <p class="mb-0">Aucun.</p>
             </div>
           <?php else: ?>
             <?php foreach ($contacts as $contact): ?>
@@ -438,13 +492,13 @@ include 'template/header.php';
                     <div class="fw-bold">Conversation active</div>
                     <small class="text-muted"><?= htmlspecialchars($chatRole) ?>: <?= htmlspecialchars($chatPartner !== '' ? $chatPartner : 'Conversation') ?></small>
                     <?php if ($isArchivedConversation): ?>
-                      <div class="front-status-pill" style="background:#F3F4F6;color:#4B5563;"><i class="fas fa-box-archive"></i> Cette conversation est archivee</div>
+                      <div class="front-status-pill" style="background:#F3F4F6;color:#4B5563;"><i class="fas fa-box-archive"></i> Archivee</div>
                     <?php endif; ?>
                   </div>
                 </div>
               <?php else: ?>
                 <div class="fw-bold">Conversation active</div>
-            <small class="text-muted">Selectionnez une personne a contacter dans la colonne de gauche.</small>
+            <small class="text-muted">Selectionnez un contact.</small>
           <?php endif; ?>
         </div>
 
@@ -452,17 +506,17 @@ include 'template/header.php';
           <?php if (!$selectedConversation): ?>
             <div class="text-center text-muted py-5">
               <i class="fas fa-comments fa-2x mb-3"></i>
-              <p class="mb-0">Aucun message a afficher.</p>
+              <p class="mb-0">Aucun.</p>
             </div>
           <?php elseif ($isArchivedConversation): ?>
             <div class="text-center text-muted py-5">
               <i class="fas fa-box-archive fa-2x mb-3"></i>
-              <p class="mb-0">Cette conversation est archivee et ne peut pas etre ouverte.</p>
+              <p class="mb-0">Archivee.</p>
             </div>
           <?php elseif (empty($messages)): ?>
             <div class="text-center text-muted py-5">
               <i class="fas fa-comments fa-2x mb-3"></i>
-              <p class="mb-0">Aucun message pour le moment.</p>
+              <p class="mb-0">Aucun.</p>
             </div>
           <?php else: ?>
                 <?php foreach ($messages as $message): ?>
@@ -488,10 +542,10 @@ include 'template/header.php';
                             <?php if (!$isFlagged): ?>
                               <a href="/ProjetCommunication/controller/updateMessageAlert.php?id=<?= (int) $message->id ?>&action=claim&redirect=<?= urlencode($messageAlertRedirect) ?>">
                                 <i class="fas fa-bell"></i>
-                                Alerter admin
+                                Alerte
                               </a>
                             <?php else: ?>
-                              <span><i class="fas fa-check"></i> Alerte deja envoyee</span>
+                              <span><i class="fas fa-check"></i> Envoyee</span>
                             <?php endif; ?>
                           </div>
                         </div>
@@ -502,7 +556,7 @@ include 'template/header.php';
                         <div class="front-unread-pill"><i class="fas fa-circle" style="font-size:0.45rem;"></i> Non lu</div>
                       <?php endif; ?>
                       <?php if ($isFlagged): ?>
-                        <div class="front-message-flag"><i class="fas fa-bell"></i> Message signale</div>
+                        <div class="front-message-flag"><i class="fas fa-bell"></i> Signale</div>
                       <?php endif; ?>
                       <div class="front-time"><?= $message->created_at ?? '-' ?></div>
                     </div>
@@ -519,21 +573,24 @@ include 'template/header.php';
             <input type="hidden" name="redirect_to" value="../view/front/communication.php?id=<?= (int) $selectedConversationId ?>">
 
             <div class="front-compose-wrap">
-              <textarea name="body" id="msgBody" class="form-control" rows="2" placeholder="Tapez votre message..."></textarea>
-              <button type="submit" class="btn btn-kider front-send-btn" aria-label="Envoyer le message">
-                <i class="fas fa-paper-plane"></i>
-              </button>
+              <div id="aiSuggestionBox" class="ai-suggestion"></div>
+              <div class="front-compose-shell">
+              <textarea name="body" id="msgBody" class="form-control" rows="2" placeholder="Message"></textarea>
+                <button type="submit" class="btn btn-kider front-send-btn" aria-label="Envoyer le message">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
             </div>
             <div id="msgErr" class="mt-2" style="font-size:12px;font-weight:700;color:#EF5350;display:none;"></div>
           </form>
         <?php elseif ($selectedConversation && $isArchivedConversation): ?>
           <div class="front-composer">
-            <div class="text-center text-muted py-4">
-              <i class="fas fa-lock fa-2x mb-3"></i>
-              <div>Cette conversation est archivee. Aucune action n'est disponible tant que l'admin ne la desarchive pas.</div>
+              <div class="text-center text-muted py-4">
+                <i class="fas fa-lock fa-2x mb-3"></i>
+                <div>Archivee.</div>
+              </div>
             </div>
-          </div>
-        <?php endif; ?>
+          <?php endif; ?>
       </div>
     </div>
   </div>
@@ -566,6 +623,16 @@ var msgBody = document.getElementById('msgBody');
     msgBody.addEventListener('input', function() {
       document.getElementById('msgErr').style.display = 'none';
       this.style.borderColor = 'transparent';
+      
+      var composeShell = document.querySelector('.front-compose-shell');
+      var sendBtnIcon = document.querySelector('.front-send-btn i');
+      if (this.value.toLowerCase().includes('/bot')) {
+          if (composeShell) composeShell.classList.add('bot-active');
+          if (sendBtnIcon) sendBtnIcon.className = 'fas fa-robot';
+      } else {
+          if (composeShell) composeShell.classList.remove('bot-active');
+          if (sendBtnIcon) sendBtnIcon.className = 'fas fa-paper-plane';
+      }
     });
   }
 
@@ -592,4 +659,72 @@ var msgBody = document.getElementById('msgBody');
       menu.classList.remove('is-open');
     });
   });
+  // AI Autocomplete Logic
+  var bodyInput = document.getElementById('msgBody');
+  var aiBox = document.getElementById('aiSuggestionBox');
+  var typingTimer;
+  var currentSuggestion = '';
+
+  if (bodyInput && aiBox) {
+    bodyInput.addEventListener('keyup', function(e) {
+      clearTimeout(typingTimer);
+      if (e.key === 'Tab' && currentSuggestion !== '') {
+        e.preventDefault();
+        var currentText = bodyInput.value;
+        if (!currentText.endsWith(' ') && !currentSuggestion.startsWith(' ') && currentText.length > 0) {
+          bodyInput.value += ' ' + currentSuggestion;
+        } else {
+          bodyInput.value += currentSuggestion;
+        }
+        currentSuggestion = '';
+        aiBox.classList.remove('visible');
+        return;
+      }
+      aiBox.classList.remove('visible');
+      currentSuggestion = '';
+      if (bodyInput.value.trim().length > 5) {
+        typingTimer = setTimeout(fetchAiSuggestion, 600);
+      }
+    });
+
+    bodyInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab' && currentSuggestion !== '') {
+        e.preventDefault();
+      }
+    });
+
+    function fetchAiSuggestion() {
+      var text = bodyInput.value;
+      var parentName = "Utilisateur";
+      var childName = "";
+      
+      var chatElements = document.querySelectorAll('.front-message .front-bubble');
+      var recentChats = Array.from(chatElements).slice(-3).map(function(el) {
+          var sender = el.querySelector('.front-meta') ? el.querySelector('.front-meta').innerText : 'User';
+          var msgDiv = el.querySelectorAll('div')[1];
+          var msg = msgDiv ? msgDiv.innerText : '';
+          return sender + ': ' + msg;
+      }).join('\n');
+
+      fetch('/ProjetCommunication/controller/ai_autocomplete.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            text: text,
+            parentName: parentName,
+            childName: childName,
+            chatHistory: recentChats
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.suggestion && data.suggestion.trim() !== '') {
+          currentSuggestion = data.suggestion;
+          aiBox.innerHTML = '<span class="tab-key">Tab</span>' + currentSuggestion;
+          aiBox.classList.add('visible');
+        }
+      })
+      .catch(error => console.error('Error fetching AI suggestion:', error));
+    }
+  }
 </script>

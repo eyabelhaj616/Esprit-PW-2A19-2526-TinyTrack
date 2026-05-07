@@ -21,11 +21,21 @@ class Conversation {
                     s.role AS staff_role,
                     COUNT(m.id) AS messages_count,
                     MAX(m.created_at) AS last_message_at,
-                    SUM(CASE WHEN m.needs_admin_attention = 1 THEN 1 ELSE 0 END) AS alert_messages_count
+                    SUM(CASE WHEN m.needs_admin_attention = 1 THEN 1 ELSE 0 END) AS alert_messages_count,
+                    COUNT(DISTINCT CASE
+                        WHEN g.id IS NOT NULL THEN e.id
+                        ELSE NULL
+                    END) AS children_count,
+                    GROUP_CONCAT(DISTINCT CASE
+                        WHEN g.id IS NOT NULL THEN e.prenom
+                        ELSE NULL
+                    END ORDER BY e.prenom SEPARATOR ', ') AS child_names
                 FROM conversation c
                 LEFT JOIN user p ON p.id = c.parent_id
                 LEFT JOIN user s ON s.id = c.staff_id
                 LEFT JOIN message m ON m.conversation_id = c.id
+                LEFT JOIN enfant e ON e.parent_id = c.parent_id AND e.statut = 'actif'
+                LEFT JOIN groupe g ON g.id = e.groupe_id AND g.educateur_id = c.staff_id
                 GROUP BY c.id, c.parent_id, c.staff_id, c.status, c.created_at,
                          p.nom, p.prenom, s.nom, s.prenom, s.role
                 ORDER BY c.created_at DESC";
@@ -46,11 +56,21 @@ class Conversation {
                         s.role AS staff_role,
                         COUNT(m.id) AS messages_count,
                         MAX(m.created_at) AS last_message_at,
-                        SUM(CASE WHEN m.needs_admin_attention = 1 THEN 1 ELSE 0 END) AS alert_messages_count
+                        SUM(CASE WHEN m.needs_admin_attention = 1 THEN 1 ELSE 0 END) AS alert_messages_count,
+                        COUNT(DISTINCT CASE
+                            WHEN g.id IS NOT NULL THEN e.id
+                            ELSE NULL
+                        END) AS children_count,
+                        GROUP_CONCAT(DISTINCT CASE
+                            WHEN g.id IS NOT NULL THEN e.prenom
+                            ELSE NULL
+                        END ORDER BY e.prenom SEPARATOR ', ') AS child_names
                     FROM conversation c
                     LEFT JOIN user p ON p.id = c.parent_id
                     LEFT JOIN user s ON s.id = c.staff_id
-                    LEFT JOIN message m ON m.conversation_id = c.id";
+                    LEFT JOIN message m ON m.conversation_id = c.id
+                    LEFT JOIN enfant e ON e.parent_id = c.parent_id AND e.statut = 'actif'
+                    LEFT JOIN groupe g ON g.id = e.groupe_id AND g.educateur_id = c.staff_id";
 
         $whereSql = "";
         $params = [];
@@ -190,11 +210,21 @@ class Conversation {
                     s.role AS staff_role,
                     COUNT(m.id) AS messages_count,
                     MAX(m.created_at) AS last_message_at,
-                    SUM(CASE WHEN m.needs_admin_attention = 1 THEN 1 ELSE 0 END) AS alert_messages_count
+                    SUM(CASE WHEN m.needs_admin_attention = 1 THEN 1 ELSE 0 END) AS alert_messages_count,
+                    COUNT(DISTINCT CASE
+                        WHEN g.id IS NOT NULL THEN e.id
+                        ELSE NULL
+                    END) AS children_count,
+                    GROUP_CONCAT(DISTINCT CASE
+                        WHEN g.id IS NOT NULL THEN e.prenom
+                        ELSE NULL
+                    END ORDER BY e.prenom SEPARATOR ', ') AS child_names
                 FROM conversation c
                 LEFT JOIN user p ON p.id = c.parent_id
                 LEFT JOIN user s ON s.id = c.staff_id
                 LEFT JOIN message m ON m.conversation_id = c.id
+                LEFT JOIN enfant e ON e.parent_id = c.parent_id AND e.statut = 'actif'
+                LEFT JOIN groupe g ON g.id = e.groupe_id AND g.educateur_id = c.staff_id
                 WHERE c.id = ?
                 GROUP BY c.id, c.parent_id, c.staff_id, c.status, c.created_at,
                          p.nom, p.prenom, p.email, s.nom, s.prenom, s.email, s.role
